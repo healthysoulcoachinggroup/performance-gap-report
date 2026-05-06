@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Performance Gap Report — HSCG</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700&family=Lato:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #f0f2f0;
+    --bg-dark: #e3e6e3;
+    --forest: #1a3d2b;
+    --forest-light: #2a5e42;
+    --amber: #c8883a;
+    --amber-light: #d4a056;
+    --amber-glow: rgba(200, 136, 58, 0.12);
+    --cream: #f7f6f1;
+    --white: #ffffff;
+    --text-muted: #5a6b5e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Lato', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--forest);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER / LOGO ── */
+  .header {
+    text-align: center;
+    padding: 24px 24px 0;
+  }
+  .logo-container {
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  /*
+    ╔═══════════════════════════════════════════════════════════╗
+    ║  TO USE YOUR ACTUAL LOGO FILE:                          ║
+    ║  1. Replace the <svg> inside .logo-container with:      ║
+    ║     <img src="your-logo.png" alt="HSCG" height="52">   ║
+    ║  2. Use the dark-green-on-transparent version            ║
+    ╚═══════════════════════════════════════════════════════════╝
+  */
+  .logo-svg { height: 52px; width: auto; }
+  .header-sub {
+    font-family: 'Lato', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-container {
+    max-width: 520px;
+    margin: 20px auto 0;
+    padding: 0 24px;
+  }
+  .progress-bar-bg {
+    width: 100%;
+    height: 4px;
+    background: var(--bg-dark);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--amber), var(--amber-light));
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+  .progress-text {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 6px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── QUIZ CONTAINER ── */
+  .quiz-wrapper {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 24px 24px 48px;
+    position: relative;
+    min-height: 480px;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    right: 24px;
+    opacity: 0;
+    transform: translateY(24px);
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .screen.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    position: relative;
+    top: 0; left: 0; right: 0;
+  }
+
+  /* ── INTRO SCREEN ── */
+  .intro-badge {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 700;
+    margin-bottom: 16px;
+    background: var(--amber-glow);
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+  .intro-title {
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: clamp(28px, 6vw, 38px);
+    font-weight: 900;
+    line-height: 1.2;
+    color: var(--forest);
+    margin-bottom: 20px;
+  }
+  .intro-title em {
+    font-style: italic;
+    color: var(--amber);
+    font-weight: 700;
+  }
+  .intro-body {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .intro-body strong {
+    color: var(--forest);
+    font-weight: 600;
+  }
+  .intro-note {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+
+  /* ── QUESTION SCREEN ── */
+  .question-number {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .question-text {
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: clamp(21px, 4.5vw, 26px);
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--forest);
+    margin-bottom: 28px;
+  }
+
+  /* ── ANSWER OPTIONS ── */
+  .options { display: flex; flex-direction: column; gap: 12px; }
+
+  .option-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    width: 100%;
+    padding: 18px 20px;
+    background: var(--white);
+    border: 2px solid transparent;
+    border-radius: 14px;
+    cursor: pointer;
+    text-align: left;
+    font-family: 'Lato', sans-serif;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--forest);
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(26, 61, 43, 0.04);
+  }
+  .option-btn:hover {
+    border-color: var(--amber);
+    box-shadow: 0 2px 12px rgba(200, 136, 58, 0.12);
+    transform: translateY(-1px);
+  }
+  .option-btn.selected {
+    border-color: var(--amber);
+    background: var(--amber-glow);
+  }
+  .option-letter {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--forest);
+    transition: all 0.3s ease;
+    margin-top: 1px;
+  }
+  .option-btn.selected .option-letter {
+    background: var(--amber);
+    color: var(--white);
+  }
+
+  /* ── DIMENSION TAGS ── */
+  .dimension-tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-bottom: 14px;
+  }
+  .dim-hormonal { background: #fce4ec; color: #880e4f; }
+  .dim-brain { background: #e8eaf6; color: #283593; }
+  .dim-nervous { background: #f3e5f5; color: #6a1b9a; }
+  .dim-mental { background: #fff3e0; color: #e65100; }
+  .dim-systematic { background: #e0f2f1; color: #00695c; }
+
+  /* ── LOADING SCREEN ── */
+  .loading-screen { text-align: center; padding-top: 60px; }
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid var(--bg-dark);
+    border-top-color: var(--amber);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    margin: 0 auto 28px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: 20px;
+    color: var(--forest);
+    margin-bottom: 8px;
+  }
+  .loading-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ── RESULT SCREEN ── */
+  .result-screen { padding-top: 8px; }
+  .result-badge {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .result-badge.type1 { background: #f8e0e0; color: #8b3a3a; }
+  .result-badge.type2 { background: #fef3e0; color: #8b6a2a; }
+  .result-badge.type3 { background: #e0f0e8; color: #2a6b4a; }
+
+  .result-type-label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .result-title {
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: clamp(26px, 6vw, 34px);
+    font-weight: 900;
+    line-height: 1.2;
+    color: var(--forest);
+    margin-bottom: 24px;
+  }
+
+  .result-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(26, 61, 43, 0.06);
+  }
+  .result-card-title {
+    font-family: 'Merriweather', Georgia, serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--forest);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .result-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .result-card-icon.insight { background: var(--amber-glow); }
+  .result-card-icon.action { background: #e0f0e8; }
+  .result-card-icon.next { background: #f0e8f4; }
+
+  .result-card p {
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: var(--text-muted);
+  }
+  .result-card p strong {
+    color: var(--forest);
+    font-weight: 600;
+  }
+  .result-card em {
+    font-style: italic;
+    color: var(--forest);
+  }
+
+  .result-action-item {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--forest);
+    font-weight: 600;
+    border-left: 3px solid var(--amber);
+  }
+
+  .result-quote {
+    font-family: 'Merriweather', Georgia, serif;
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--forest);
+    text-align: center;
+    padding: 24px 16px;
+    margin-bottom: 20px;
+    opacity: 0.85;
+  }
+
+  /* ── CTA BUTTON ── */
+  .cta-btn {
+    display: block;
+    width: 100%;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, var(--forest), var(--forest-light));
+    color: var(--white);
+    font-family: 'Lato', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(26, 61, 43, 0.2);
+    margin-bottom: 10px;
+  }
+  .cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(26, 61, 43, 0.3);
+  }
+  .cta-sub {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .start-btn {
+    display: block;
+    width: 100%;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, var(--amber), var(--amber-light));
+    color: var(--white);
+    font-family: 'Lato', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(200, 136, 58, 0.25);
+  }
+  .start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(200, 136, 58, 0.35);
+  }
+
+  .retake-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 24px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'Lato', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1.5px solid var(--bg-dark);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-top: 6px;
+  }
+  .retake-btn:hover {
+    border-color: var(--amber);
+    color: var(--forest);
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 16px 24px 32px;
+    font-size: 11px;
+    color: var(--text-muted);
+    opacity: 0.6;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 480px) {
+    .quiz-wrapper { padding: 20px 16px 40px; }
+    .screen.active { left: 0; right: 0; }
+    .option-btn { padding: 16px 16px; font-size: 14px; }
+    .result-card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER WITH LOGO ═══ -->
+<div class="header">
+  <div class="logo-container">
+    <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="204" zoomAndPan="magnify" viewBox="0 0 153 135.000003" height="180" preserveAspectRatio="xMidYMid meet" version="1.0" aria-label="HSCG Logo"><defs><clipPath id="d44c1818a7"><path d="M 0.5625 0 L 152.4375 0 L 152.4375 134.007812 L 0.5625 134.007812 Z M 0.5625 0 " clip-rule="nonzero"/></clipPath><clipPath id="b1c6781957"><path d="M 55.703125 47.375 L 62.316406 47.375 L 62.316406 86.644531 L 55.703125 86.644531 Z M 55.703125 47.375 " clip-rule="nonzero"/></clipPath><clipPath id="9ebb2fce0a"><path d="M 0.703125 0.375 L 7.316406 0.375 L 7.316406 39.644531 L 0.703125 39.644531 Z M 0.703125 0.375 " clip-rule="nonzero"/></clipPath><clipPath id="8c138bf6c0"><rect x="0" width="8" y="0" height="40"/></clipPath><clipPath id="fb351bd2e9"><path d="M 45.769531 54.34375 L 52.378906 54.34375 L 52.378906 79.953125 L 45.769531 79.953125 Z M 45.769531 54.34375 " clip-rule="nonzero"/></clipPath><clipPath id="afc90b7766"><path d="M 0.769531 0.34375 L 7.378906 0.34375 L 7.378906 25.953125 L 0.769531 25.953125 Z M 0.769531 0.34375 " clip-rule="nonzero"/></clipPath><clipPath id="6c1b183f73"><rect x="0" width="8" y="0" height="26"/></clipPath><clipPath id="588cc09d5d"><path d="M 36 62 L 43 62 L 43 72.625 L 36 72.625 Z M 36 62 " clip-rule="nonzero"/></clipPath><clipPath id="0b2d8ba813"><path d="M 42.722656 62.101562 L 42.722656 72.195312 L 41.136719 72.195312 C 38.367188 72.195312 36.109375 69.9375 36.109375 67.167969 L 38.367188 62.140625 Z M 42.722656 62.101562 " clip-rule="nonzero"/></clipPath><clipPath id="0d20a23662"><path d="M 0.0585938 0 L 6.730469 0 L 6.730469 10.421875 L 0.0585938 10.421875 Z M 0.0585938 0 " clip-rule="nonzero"/></clipPath><clipPath id="7c85ffb8a5"><path d="M 6.722656 0.101562 L 6.722656 10.195312 L 5.136719 10.195312 C 2.367188 10.195312 0.109375 7.9375 0.109375 5.167969 L 2.367188 0.140625 Z M 6.722656 0.101562 " clip-rule="nonzero"/></clipPath><clipPath id="974a124817"><rect x="0" width="7" y="0" height="11"/></clipPath><clipPath id="769dab5591"><path d="M 55.683594 31.097656 L 97.644531 31.097656 L 97.644531 102.910156 L 55.683594 102.910156 Z M 55.683594 31.097656 " clip-rule="nonzero"/></clipPath><clipPath id="068df2fe8b"><path d="M 97.269531 31.421875 L 63.144531 65.542969 C 61.40625 67.285156 62.632812 70.292969 65.125 70.292969 L 78.78125 70.292969 L 55.824219 93.253906 L 55.824219 102.59375 L 89.945312 68.472656 C 91.6875 66.730469 90.460938 63.722656 87.964844 63.722656 L 74.347656 63.722656 L 97.269531 40.804688 Z M 97.269531 31.421875 " clip-rule="nonzero"/></clipPath><clipPath id="f5b44c6511"><path d="M 0.683594 0.207031 L 42.285156 0.207031 L 42.285156 71.679688 L 0.683594 71.679688 Z M 0.683594 0.207031 " clip-rule="nonzero"/></clipPath><clipPath id="c368d2106d"><path d="M 42.269531 0.421875 L 8.144531 34.542969 C 6.40625 36.285156 7.632812 39.292969 10.125 39.292969 L 23.78125 39.292969 L 0.824219 62.253906 L 0.824219 71.59375 L 34.945312 37.472656 C 36.6875 35.730469 35.460938 32.722656 32.964844 32.722656 L 19.347656 32.722656 L 42.269531 9.804688 Z M 42.269531 0.421875 " clip-rule="nonzero"/></clipPath><clipPath id="015209e948"><rect x="0" width="43" y="0" height="72"/></clipPath><clipPath id="08b5497e1b"><path d="M 90.726562 47.105469 L 97.644531 47.105469 L 97.644531 86.902344 L 90.726562 86.902344 Z M 90.726562 47.105469 " clip-rule="nonzero"/></clipPath><clipPath id="f512e6b9fc"><path d="M 97.386719 86.644531 L 90.816406 86.644531 L 90.816406 47.375 L 97.425781 47.375 Z M 97.386719 86.644531 " clip-rule="nonzero"/></clipPath><clipPath id="574ce912db"><path d="M 0.726562 0.171875 L 7.523438 0.171875 L 7.523438 39.71875 L 0.726562 39.71875 Z M 0.726562 0.171875 " clip-rule="nonzero"/></clipPath><clipPath id="257fb1c222"><path d="M 7.386719 39.644531 L 0.816406 39.644531 L 0.816406 0.375 L 7.425781 0.375 Z M 7.386719 39.644531 " clip-rule="nonzero"/></clipPath><clipPath id="116e8d4b52"><rect x="0" width="8" y="0" height="40"/></clipPath><clipPath id="944b42416a"><path d="M 100.789062 54.34375 L 107.402344 54.34375 L 107.402344 79.953125 L 100.789062 79.953125 Z M 100.789062 54.34375 " clip-rule="nonzero"/></clipPath><clipPath id="fedcd29782"><path d="M 0.789062 0.34375 L 7.402344 0.34375 L 7.402344 25.953125 L 0.789062 25.953125 Z M 0.789062 0.34375 " clip-rule="nonzero"/></clipPath><clipPath id="580ddb9df8"><rect x="0" width="8" y="0" height="26"/></clipPath><clipPath id="7027d9d404"><path d="M 110.191406 62 L 117 62 L 117 72.625 L 110.191406 72.625 Z M 110.191406 62 " clip-rule="nonzero"/></clipPath><clipPath id="fb88ca372f"><path d="M 110.292969 62.101562 L 110.292969 72.195312 L 114.644531 72.195312 L 116.902344 67.167969 L 116.902344 67.046875 C 116.863281 64.316406 114.605469 62.101562 111.875 62.101562 Z M 110.292969 62.101562 " clip-rule="nonzero"/></clipPath><clipPath id="3c87f3b3e4"><path d="M 0.191406 0 L 7 0 L 7 10.421875 L 0.191406 10.421875 Z M 0.191406 0 " clip-rule="nonzero"/></clipPath><clipPath id="3b77d816e6"><path d="M 0.292969 0.101562 L 0.292969 10.195312 L 4.644531 10.195312 L 6.902344 5.167969 L 6.902344 5.046875 C 6.863281 2.316406 4.605469 0.101562 1.875 0.101562 Z M 0.292969 0.101562 " clip-rule="nonzero"/></clipPath><clipPath id="ccd95609f7"><rect x="0" width="7" y="0" height="11"/></clipPath></defs><g clip-path="url(#b1c6781957)"><g transform="matrix(1, 0, 0, 1, 55, 47)"><g clip-path="url(#8c138bf6c0)"><g clip-path="url(#9ebb2fce0a)"><rect x="-88.66" width="220.32" fill="#2b4937" height="194.400004" y="-76.700001" fill-opacity="1"/></g></g></g></g><g clip-path="url(#fb351bd2e9)"><g transform="matrix(1, 0, 0, 1, 45, 54)"><g clip-path="url(#6c1b183f73)"><g clip-path="url(#afc90b7766)"><rect x="-78.66" width="220.32" fill="#2b4937" height="194.400004" y="-83.700001" fill-opacity="1"/></g></g></g></g><g clip-path="url(#588cc09d5d)"><g clip-path="url(#0b2d8ba813)"><g transform="matrix(1, 0, 0, 1, 36, 62)"><g clip-path="url(#974a124817)"><g clip-path="url(#0d20a23662)"><g clip-path="url(#7c85ffb8a5)"><rect x="-69.66" width="220.32" fill="#2b4937" height="194.400004" y="-91.700001" fill-opacity="1"/></g></g></g></g></g></g><g clip-path="url(#769dab5591)"><g clip-path="url(#068df2fe8b)"><g transform="matrix(1, 0, 0, 1, 55, 31)"><g clip-path="url(#015209e948)"><g clip-path="url(#f5b44c6511)"><g clip-path="url(#c368d2106d)"><rect x="-88.66" width="220.32" fill="#2b4937" height="194.400004" y="-60.700001" fill-opacity="1"/></g></g></g></g></g></g><g clip-path="url(#08b5497e1b)"><g clip-path="url(#f512e6b9fc)"><g transform="matrix(1, 0, 0, 1, 90, 47)"><g clip-path="url(#116e8d4b52)"><g clip-path="url(#574ce912db)"><g clip-path="url(#257fb1c222)"><rect x="-123.66" width="220.32" fill="#2b4937" height="194.400004" y="-76.700001" fill-opacity="1"/></g></g></g></g></g></g><g clip-path="url(#944b42416a)"><g transform="matrix(1, 0, 0, 1, 100, 54)"><g clip-path="url(#580ddb9df8)"><g clip-path="url(#fedcd29782)"><rect x="-133.66" width="220.32" fill="#2b4937" height="194.400004" y="-83.700001" fill-opacity="1"/></g></g></g></g><g clip-path="url(#7027d9d404)"><g clip-path="url(#fb88ca372f)"><g transform="matrix(1, 0, 0, 1, 110, 62)"><g clip-path="url(#ccd95609f7)"><g clip-path="url(#3c87f3b3e4)"><g clip-path="url(#3b77d816e6)"><rect x="-143.66" width="220.32" fill="#2b4937" height="194.400004" y="-91.700001" fill-opacity="1"/></g></g></g></g></g></g></svg>
+  </div>
+  <div class="header-sub">Healthy Soul Coaching Group</div>
+</div>
+
+<!-- ═══ PROGRESS BAR ═══ -->
+<div class="progress-container" id="progressContainer">
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-text" id="progressText"></div>
+</div>
+
+<div class="quiz-wrapper">
+
+  <!-- ═══════════════════ INTRO ═══════════════════ -->
+  <div class="screen active" id="intro">
+    <span class="intro-badge">2-Minute Assessment</span>
+    <h1 class="intro-title">Your Performance<br>Gap <em>Report</em></h1>
+    <p class="intro-body">
+      The bloating. The brain fog. The hormonal chaos you can't explain. The nervous system that won't downregulate no matter what you try. <strong>None of that is separate from your business performance. That IS your business performance.</strong>
+    </p>
+    <p class="intro-body">
+      This report maps your specific symptoms — hormonal, inflammatory, neurological, and behavioral — directly to the gap between where you are and the most powerful version of yourself.
+    </p>
+    <p class="intro-note">
+      Five questions. Two minutes. No data collected. Your results are instant and completely private.
+    </p>
+    <button class="start-btn" onclick="startQuiz()">See Where Your Gap Is →</button>
+  </div>
+
+  <!-- ═══════════════════ QUESTION 1: HORMONAL & INFLAMMATION ═══════════════════ -->
+  <div class="screen" id="q1">
+    <span class="dimension-tag dim-hormonal">Hormonal &amp; Inflammation</span>
+    <div class="question-number">Question 1 of 5</div>
+    <h2 class="question-text">What's your body doing right now that you can't seem to control?</h2>
+    <div class="options">
+      <button class="option-btn" onclick="selectAnswer(1, 0)">
+        <span class="option-letter">A</span>
+        <span>My cycle is relatively predictable, my skin is mostly clear, and my body responds when I eat well and train. Inflammation isn't something I'm dealing with on a daily basis.</span>
+      </button>
+      <button class="option-btn" onclick="selectAnswer(1, 1)">
+        <span class="option-letter">B</span>
+        <span>Something is off. I'm bloated more often than I should be, my cycle is heavier or more irregular, my skin is breaking out, and my body is holding onto weight in places it never used to — especially my midsection. I can feel the inflammation but I can't pinpoint the source.</span>
+      </button>
+      <button class="option-btn" onclick="selectAnswer(1, 2)">
+        <span class="option-letter">C</span>
+        <span>My hormones feel completely wrecked. Persistent bloating, stubborn weight that won't budge no matter what I do, hair thinning, skin that's aged five years in one, painful or missing periods — my body is sending red flags everywhere and nothing I've tried has made a dent.</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ QUESTION 2: BRAIN FOG & COGNITIVE LOAD ═══════════════════ -->
+  <div class="screen" id="q2">
+    <span class="dimension-tag dim-brain">Brain Fog &amp; Cognitive Load</span>
+    <div class="question-number">Question 2 of 5</div>
+    <h2 class="question-text">How is your brain actually performing when your business needs you sharpest?</h2>
+    <div class="options">
+      <button class="option-btn" onclick="selectAnswer(2, 0)">
+        <span class="option-letter">A</span>
+        <span>My thinking is generally clear. I can hold complex problems, stay in creative flow, and make calls without a fog rolling in. I have off days, but my cognitive baseline is solid.</span>
+      </button>
+      <button class="option-btn" onclick="selectAnswer(2, 1)">
+        <span class="option-letter">B</span>
+        <span>I start the day sharp but by early afternoon, my brain is done. The fog rolls in after lunch. I lose words mid-sentence, I re-read the same email three times, and the strategic thinking that used to come easily now takes twice the effort. My best hours are shrinking.</span>
+      </button>
+      <button class="option-btn" onclick="selectAnswer(2, 2)">
+        <span class="option-letter">C</span>
+        <span>The brain fog is constant. I can barely hold a full thought before another one interrupts it. I forget things I just said, I stare at my screen unable to start, and I feel cognitively underwater most of the day. My brain is running at a fraction of what it's capable of and I know it.</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ QUESTION 3: NERVOUS SYSTEM DYSREGULATION ═══════════════════ -->
+  <div class="screen" id="q3">
+    <span class="dimension-tag dim-nervous">Nervous System</span>
+    <div class="question-number">Question 3 of 5</div>
+    <h2 class="question-text">Can you actually downregulate — or is your system stuck in "on" mode?</h2>
+    <div class="options">
+      <button class="option-btn" onclick="selectAnswer(3, 0)">
+        <span class="option-letter">A</span>
+        <span>I can switch off at the end of the day. Hard weeks happen but my nervous system recovers. I sleep well, I can sit in stillness without anxiety, and I feel regulated most of the time — even under pressure.</span>
+      </button>
+      <button class="option-btn" onclick="selectAnswer(3, 1)">
+        <span class="option-letter">B</span>
+        <span>I'm wired but tired — running all day on adrenaline and then crashing at night without actually recovering. My fuse is shorter than it should be. I'm snapping at my partner, clenching my jaw, and my body holds tension I can never fully release. I feel "on" even when I'm supposed to be off.</span>
+      </button>
+      <button class="option-btn" onclick="selectAnswer(3, 2)">
+        <span class="option-letter">C</span>
+        <span>My nervous system is in full fight-or-flight and I can feel it in everything. The 3am anxiety spirals. The heart racing before I've even checked my phone. The inability to sit still without guilt. I'm either in overdrive or completely shut down — there is no middle. My body is stuck in survival mode.</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ QUESTION 4: PERFECTIONISM & MENTAL EXHAUSTION ═══════════════════ -->
+  <div class="screen" id="q4">
+    <span class="dimension-tag dim-mental">Mental Load &amp; Perfectionism</span>
+    <div class="question-number">Question 4 of 5</div>
+    <h2 class="question-text">How much of your exhaustion is coming from the standards running inside your own head?</h2>
+    <div class="options">
+      <button class="option-btn" onclick="selectAnswer(4, 0)">
+        <span class="option-letter">A</span>
+        <span>I hold high standards but they don't consume me. I can delegate without redoing the work, I can rest without guilt, and I don't spiral when something isn't perfect. My expectations drive me forward — they don't drain me.</span>
+      </button>
+      <button class="option-btn" onclick="selectAnswer(4, 1)">
+        <span class="option-letter">B</span>
+        <span>My standards are relentless and they're exhausting me. I redo other people's work, I can't stop mentally running through to-do lists, and I hold myself to a level of output that I'd never expect from anyone else. I know it's too much but I don't know how to lower the bar without feeling like I'm failing.</span>
+      </button>
+      <button class="option-btn" onclick="selectAnswer(4, 2)">
+        <span class="option-letter">C</span>
+        <span>My perfectionism is destroying me. I'm mentally running my business 24/7 — even when I'm in bed, in the shower, with my kids. The to-do list never ends, the inner critic never stops, and I'm so exhausted from my own expectations that I have nothing left for the people and the vision that actually matter. I'm burning out from the inside.</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ QUESTION 5: WORKFLOW, STRUCTURE & CONTEXT SWITCHING ═══════════════════ -->
+  <div class="screen" id="q5">
+    <span class="dimension-tag dim-systematic">Workflow &amp; Structure</span>
+    <div class="question-number">Question 5 of 5</div>
+    <h2 class="question-text">How are you actually structuring your days, your workload, and the way you move through your business?</h2>
+    <div class="options">
+      <button class="option-btn" onclick="selectAnswer(5, 0)">
+        <span class="option-letter">A</span>
+        <span>My days have structure. I batch my work, I protect my deep focus time, and I've delegated enough that my schedule isn't controlled by everyone else's fires. I context-switch less than I used to and I eat real meals at real times.</span>
+      </button>
+      <button class="option-btn" onclick="selectAnswer(5, 1)">
+        <span class="option-letter">B</span>
+        <span>I have a plan for the day but it rarely survives past 10am. I'm jumping between Slack, email, calls, and content with no protected blocks. I eat at my desk (or forget to eat entirely), my training is the first thing that gets cut, and I context-switch so many times per hour that nothing gets my full attention. Everything runs through me.</span>
+      </button>
+      <button class="option-btn" onclick="selectAnswer(5, 2)">
+        <span class="option-letter">C</span>
+        <span>There is no structure. My days are completely reactive — I wake up and immediately start putting out fires. I can't delegate because I don't trust the output, I can't focus because I'm interrupted every few minutes, and the context-switching is so constant that my brain never enters a single deep-work state. I'm in GO mode from wake to crash, every single day.</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ LOADING ═══════════════════ -->
+  <div class="screen" id="loading">
+    <div class="loading-screen">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Mapping your performance gap...</div>
+      <div class="loading-sub">Connecting your symptoms to your business ceiling.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ RESULT 1: THE DEPLETED FOUNDER ═══════════════════ -->
+  <div class="screen" id="result1">
+    <div class="result-screen">
+      <span class="result-badge type1">Your Report</span>
+      <div class="result-type-label">Result: Type 1</div>
+      <h2 class="result-title">The Depleted Founder</h2>
+
+      <div class="result-card">
+        <div class="result-card-title">
+          <span class="result-card-icon insight">🔍</span>
+          What's Actually Going On
+        </div>
+        <p>
+          Your body is in full red-flag mode. The hormonal chaos, the chronic inflammation, the brain fog that won't lift, the nervous system locked in fight-or-flight — these aren't separate issues. <strong>They're all signals from a system that has been running without a foundation for too long.</strong>
+        </p>
+        <p style="margin-top:12px;">
+          Your cortisol is likely chronically elevated, which is driving the insulin resistance (that stubborn midsection weight), suppressing your thyroid and reproductive hormones, shrinking the prefrontal cortex responsible for your strategic thinking, and keeping your body in a state where it physically cannot release fat, recover, or think clearly. Sleep debt alone reduces complex decision-making quality by up to 40%. Add hormonal disruption and nervous system dysregulation on top of that and you're making every strategic, financial, and leadership decision on a brain running at a fraction of its capacity.
+        </p>
+        <p style="margin-top:12px;">
+          The inconsistent visibility, the slow launches, the reactive leadership, the playing smaller than you should be — <em>that's not a strategy problem. That's a capacity problem. And now you can see exactly where it's coming from.</em>
+        </p>
+      </div>
+
+      <div class="result-card">
+        <div class="result-card-title">
+          <span class="result-card-icon action">⚡</span>
+          Your One Move This Week
+        </div>
+        <p>
+          Before you open your laptop tomorrow morning, eat a real meal. 30+ grams of protein, healthy fat, something substantial. <strong>Your brain demands 20% of your body's total energy to function at full capacity — and right now, chronic stress and metabolic dysfunction are cutting off that supply.</strong> This one shift starts sending your nervous system the signal that survival mode is no longer required. Feed the machine before you ask it to perform.
+        </p>
+        <div class="result-action-item">
+          Tomorrow morning: Protein + fat before the first email. Every day this week. This is the first signal your body needs to begin downregulating.
+        </div>
+      </div>
+
+      <p class="result-quote">
+        "You still have your edge. The gap is just getting in the way."
+      </p>
+
+      <div class="result-card">
+        <div class="result-card-title">
+          <span class="result-card-icon next">→</span>
+          Your Next Step
+        </div>
+        <p>
+          You need intervention — not another generic program that starts with restriction and adds more stress to a system already in overdrive. A 10-minute Founder's Edge Call will map your three-dimension energy picture, identify your most critical leak across the hormonal, nervous system, and structural dimensions, and give you a clear 90-day roadmap built for YOUR specific life. <strong>This is the call that changes the trajectory.</strong>
+        </p>
+      </div>
+
+      <a href="https://api.leadconnectorhq.com/widget/bookings/hscgsupportcall0036ye" class="cta-btn" target="_blank" rel="noopener">
+        Book Your Free 10-Minute Founder's Edge Call
+      </a>
+      <div class="cta-sub">No pitch. No pressure. Just clarity on what to address first.</div>
+      <button class="retake-btn" onclick="retake()">Retake the Assessment</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ RESULT 2: HIGH FUNCTIONING BUT LEAKING ═══════════════════ -->
+  <div class="screen" id="result2">
+    <div class="result-screen">
+      <span class="result-badge type2">Your Report</span>
+      <div class="result-type-label">Result: Type 2</div>
+      <h2 class="result-title">The High-Performing Founder Who's Quietly Leaking</h2>
+
+      <div class="result-card">
+        <div class="result-card-title">
+          <span class="result-card-icon insight">🔍</span>
+          What's Actually Going On
+        </div>
+        <p>
+          From the outside, you look like you have it together. You're performing. But the bloating that shows up after every stressful week, the brain fog that steals your sharpest afternoon hours, the nervous system that's running hotter than sustainable, the perfectionism that's mentally exhausting you before you've even opened your laptop — <strong>something is off and you know it.</strong>
+        </p>
+        <p style="margin-top:12px;">
+          Your hormonal environment is likely under low-grade chronic stress — not catastrophic, but enough that your cortisol stays slightly elevated, your inflammation simmers, and your body holds onto weight it shouldn't. Your brain's prefrontal cortex — the region responsible for vision, strategic thinking, and impulse control — is operating under chronic stress that's linked to 30% reductions in productivity. You're making 35,000+ decisions a day on a system that isn't fully replenishing itself.
+        </p>
+        <p style="margin-top:12px;">
+          The offers you keep almost launching, the rooms you walk into without fully commanding them, the sales calls where something felt off — <em>that gap has a source. It's subtle, it's growing, and now you can see it.</em>
+        </p>
+      </div>
+
+      <div class="result-card">
+        <div class="result-card-title">
+          <span class="result-card-icon action">⚡</span>
+          Your One Move This Week
+        </div>
+        <p>
+          Audit your three capacity dimensions. Rate your physical capacity (hormones, energy, inflammation), your mental capacity (brain fog, decision quality, focus), and your systematic capacity (workflow, boundaries, context-switching) each on a scale of 1–10. <strong>Below 7 in any dimension means you're scaling your business from a deficit.</strong>
+        </p>
+        <div class="result-action-item">
+          Physical: ___&nbsp;&nbsp; Mental: ___&nbsp;&nbsp; Systematic: ___&nbsp;&nbsp;→ The lowest score is your biggest leak. That's where intervention creates the most leverage.
+        </div>
+      </div>
+
+      <p class="result-quote">
+        "The presence, the magnetism, the conviction — it becomes your baseline, not your best day."
+      </p>
+
+      <div class="result-card">
+        <div class="result-card-title">
+          <span class="result-card-icon next">→</span>
+          Your Next Step
+        </div>
+        <p>
+          You're closer than most — which means the right intervention creates disproportionate results. A 10-minute Founder's Edge Call will pinpoint your specific leak across the hormonal, neurological, and structural dimensions and map exactly what closing it looks like for your specific life, schedule, and business. <strong>You leave with a clear 90-day roadmap.</strong>
+        </p>
+      </div>
+
+      <a href="https://api.leadconnectorhq.com/widget/bookings/hscgsupportcall0036ye" class="cta-btn" target="_blank" rel="noopener">
+        Book Your Free 10-Minute Founder's Edge Call
+      </a>
+      <div class="cta-sub">No pitch. No pressure. Just clarity on what to address first.</div>
+      <button class="retake-btn" onclick="retake()">Retake the Assessment</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ RESULT 3: FOUNDER ON THE VERGE ═══════════════════ -->
+  <div class="screen" id="result3">
+    <div class="result-screen">
+      <span class="result-badge type3">Your Report</span>
+      <div class="result-type-label">Result: Type 3</div>
+      <h2 class="result-title">The Founder On The Verge</h2>
+
+      <div class="result-card">
+        <div class="result-card-title">
+          <span class="result-card-icon insight">🔍</span>
+          What's Actually Going On
+        </div>
+        <p>
+          You're close. Most of your systems are working. But there's one specific area — hormonal, nervous system, or structural — that's quietly holding you back from full capacity. <strong>You might not even think you have a problem. That's exactly why this matters.</strong>
+        </p>
+        <p style="margin-top:12px;">
+          The gap between where you are and the most commanding, most magnetic version of yourself isn't dramatic — it's precise. Maybe it's the low-grade inflammation that's keeping your body from responding the way it should. Maybe it's the nervous system that's just slightly too activated, keeping your cortisol elevated enough to disrupt sleep quality and hormonal balance without you even noticing. Maybe it's the context-switching and mental load from perfectionism that's leaking cognitive energy you don't realize you're spending.
+        </p>
+        <p style="margin-top:12px;">
+          <em>You've audited everything in your business except the asset that runs all of it. This is the gap — small, specific, and directly connected to your ceiling.</em>
+        </p>
+      </div>
+
+      <div class="result-card">
+        <div class="result-card-title">
+          <span class="result-card-icon action">⚡</span>
+          Your One Move This Week
+        </div>
+        <p>
+          Track your symptoms at four points this week: morning, midday, afternoon, and evening. Note your energy (1–10), any brain fog, bloating or inflammation, stress level, and mood. After five days, look at the pattern. <strong>The consistent dip tells you exactly which dimension is leaking.</strong> A midday crash with bloating signals hormonal and fueling gaps. An evening wired-but-tired state signals nervous system dysregulation. Scattered focus all day signals structural and mental load issues.
+        </p>
+        <div class="result-action-item">
+          Set four daily check-in alarms. Rate energy, note symptoms. Five days of data reveals the specific leak holding you below your ceiling.
+        </div>
+      </div>
+
+      <p class="result-quote">
+        "Lean, strong, and energized in a body that finally matches your vision. That's who you become when you close the gap."
+      </p>
+
+      <div class="result-card">
+        <div class="result-card-title">
+          <span class="result-card-icon next">→</span>
+          Your Next Step
+        </div>
+        <p>
+          You don't need a total overhaul. You need precision. A 10-minute Founder's Edge Call will pinpoint your specific capacity leak — whether it's hormonal, neurological, or structural — and map the exact intervention. <strong>The founders who close this last gap become unstoppable.</strong>
+        </p>
+      </div>
+
+      <a href="https://api.leadconnectorhq.com/widget/bookings/hscgsupportcall0036ye" class="cta-btn" target="_blank" rel="noopener">
+        Book Your Free 10-Minute Founder's Edge Call
+      </a>
+      <div class="cta-sub">No pitch. No pressure. Just clarity on what to address first.</div>
+      <button class="retake-btn" onclick="retake()">Retake the Assessment</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Healthy Soul Coaching Group — Health Optimization for Female Founders
+</div>
+
+<script>
+  let answers = {};
+  const totalQuestions = 5;
+
+  function updateProgress(step) {
+    const pct = Math.round((step / totalQuestions) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent =
+      step === 0 ? '' : step + ' of ' + totalQuestions;
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById(id);
+    setTimeout(() => {
+      target.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 80);
+  }
+
+  function startQuiz() {
+    updateProgress(0);
+    document.getElementById('progressContainer').style.opacity = '1';
+    showScreen('q1');
+  }
+
+  function selectAnswer(question, value) {
+    answers[question] = value;
+
+    // Visual feedback
+    const screen = document.getElementById('q' + question);
+    screen.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+
+    updateProgress(question);
+
+    // Auto-advance after brief pause
+    setTimeout(() => {
+      if (question < totalQuestions) {
+        showScreen('q' + (question + 1));
+      } else {
+        showResult();
+      }
+    }, 400);
+  }
+
+  function showResult() {
+    document.getElementById('progressFill').style.width = '100%';
+    document.getElementById('progressText').textContent = 'Complete';
+    showScreen('loading');
+
+    setTimeout(() => {
+      const total = Object.values(answers).reduce((a, b) => a + b, 0);
+      let resultId;
+      if (total >= 7) {
+        resultId = 'result1'; // Depleted Founder
+      } else if (total >= 4) {
+        resultId = 'result2'; // High Functioning but Leaking
+      } else {
+        resultId = 'result3'; // Founder On The Verge
+      }
+
+      document.getElementById('progressContainer').style.opacity = '0';
+      showScreen(resultId);
+    }, 2400);
+  }
+
+  function retake() {
+    answers = {};
+    document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+    document.getElementById('progressContainer').style.opacity = '1';
+    updateProgress(0);
+    showScreen('intro');
+  }
+
+  // Init
+  document.getElementById('progressContainer').style.opacity = '0';
+</script>
+
+</body>
+</html>
